@@ -53,7 +53,7 @@ class ReportList
         $limit_str = $this->sqlLimit();
         $db = Database::connection();
         try {
-            $st = $db->prepare("SELECT `org`, `begin_time`, `end_time`, `fqdn`, external_id, `seen`, SUM(`rcount`) AS `rcount`, MIN(`dkim_align`) AS `dkim_align`, MIN(`spf_align`) AS `spf_align`, MIN(`disposition`) AS `disposition` FROM `rptrecords` RIGHT JOIN (SELECT `reports`.`id`, `org`, `begin_time`, `end_time`, `external_id`, `fqdn`, `seen` FROM `reports` INNER JOIN `domains` ON `domains`.`id` = `reports`.`domain_id`{$cond_str}{$order_str}{$limit_str}) AS `reports` ON `reports`.id = `rptrecords`.`report_id` GROUP BY `reports`.`id`{$order_str}");
+            $st = $db->prepare('SELECT `org`, `begin_time`, `end_time`, `fqdn`, external_id, `seen`, SUM(`rcount`) AS `rcount`, MIN(`dkim_align`) AS `dkim_align`, MIN(`spf_align`) AS `spf_align`, MIN(`disposition`) AS `disposition` FROM `' . Database::tablePrefix() . 'rptrecords` RIGHT JOIN (SELECT `' . Database::tablePrefix() . 'reports`.`id`, `org`, `begin_time`, `end_time`, `external_id`, `fqdn`, `seen` FROM `' . Database::tablePrefix() . 'reports` INNER JOIN `' . Database::tablePrefix() . 'domains` ON `' . Database::tablePrefix() . 'domains`.`id` = `' . Database::tablePrefix() . "reports`.`domain_id`{$cond_str}{$order_str}{$limit_str}) AS `reports` ON `reports`.id = `" . Database::tablePrefix() . "rptrecords`.`report_id` GROUP BY `reports`.`id`{$order_str}");
             $this->sqlBindValues($st, 1);
             $st->execute();
             $r_cnt = 0;
@@ -181,7 +181,7 @@ class ReportList
         $cnt = 0;
         $db = Database::connection();
         try {
-            $st = $db->prepare('SELECT COUNT(*) FROM `reports`' . $this->sqlCondition(' WHERE '));
+            $st = $db->prepare('SELECT COUNT(*) FROM `' . Database::tablePrefix() . 'reports`' . $this->sqlCondition(' WHERE '));
             $this->sqlBindValues($st, -1);
             $st->execute();
             $cnt = $st->fetch(PDO::FETCH_NUM)[0];
@@ -234,7 +234,7 @@ class ReportList
         $db = Database::connection();
         try {
             $domains = [];
-            $st = $db->query('SELECT `fqdn` FROM `domains` ORDER BY `fqdn`');
+            $st = $db->query('SELECT `fqdn` FROM `' . Database::tablePrefix() . 'domains` ORDER BY `fqdn`');
             while ($r = $st->fetch(PDO::FETCH_NUM)) {
                 $domains[] = $r[0];
             }
@@ -242,7 +242,7 @@ class ReportList
             $res['domain'] = $domains;
 
             $months = [];
-            $st = $db->query('SELECT DISTINCT DATE_FORMAT(`date`, "%Y-%m") FROM ((SELECT DISTINCT `begin_time` AS `date` FROM `reports`) UNION (SELECT DISTINCT `end_time` AS `date` FROM `reports`)) AS `r` ORDER BY `date` DESC');
+            $st = $db->query('SELECT DISTINCT DATE_FORMAT(`date`, "%Y-%m") FROM ((SELECT DISTINCT `begin_time` AS `date` FROM `' . Database::tablePrefix() . 'reports`) UNION (SELECT DISTINCT `end_time` AS `date` FROM `' . Database::tablePrefix() . 'reports`)) AS `r` ORDER BY `date` DESC');
             while ($r = $st->fetch(PDO::FETCH_NUM)) {
                 $months[] = $r[0];
             }
@@ -251,7 +251,7 @@ class ReportList
 
             $orgs = [];
             // TODO оптимизировать индексом!
-            $st = $db->query('SELECT DISTINCT `org` FROM `reports` ORDER BY `org`');
+            $st = $db->query('SELECT DISTINCT `org` FROM `' . Database::tablePrefix() . 'reports` ORDER BY `org`');
             while ($r = $st->fetch(PDO::FETCH_NUM)) {
                 $orgs[] = $r[0];
             }

@@ -4,11 +4,12 @@ $debug = 0;
 
 // Settings for assessing the database in which reports will be saved
 $database = [
-    'host'     => 'localhost',
-    'type'     => 'mysql',
-    'name'     => 'dmarc',
-    'user'     => 'dmarc_user',
-    'password' => 'password'
+    'host'         => 'localhost',
+    'type'         => 'mysql',
+    'name'         => 'dmarc',
+    'user'         => 'dmarc_user',
+    'password'     => 'password',
+	'table_prefix' => '' // Can be used if the database is shared with other applications. Example value: dmarc_
 ];
 
 // This needs only if you want to get reports from a mailbox automatically.

@@ -64,6 +64,12 @@ class Database
         return $database['host'];
     }
 
+    public static function tablePrefix()
+    {
+        global $database;
+        return array_key_exists('table_prefix', $database) ? $database['table_prefix'] : '';
+    }
+
     public static function parameter($key, $value = null)
     {
         $db = self::connection();
@@ -71,7 +77,7 @@ class Database
         try {
             if ($value === null) {
                 try {
-                    $st = $db->prepare('SELECT `value` FROM `system` WHERE `key` = ?');
+                    $st = $db->prepare('SELECT `value` FROM `' . Database::tablePrefix() . 'system` WHERE `key` = ?');
                     $st->bindValue(1, strval($key), PDO::PARAM_STR);
                     $st->execute();
                     $res = $st->fetch(PDO::FETCH_NUM);
@@ -82,17 +88,17 @@ class Database
             } else {
                 $db->beginTransaction();
                 try {
-                    $st = $db->prepare('SELECT COUNT(*) FROM `system` WHERE `key` = ?');
+                    $st = $db->prepare('SELECT COUNT(*) FROM `' . Database::tablePrefix() . 'system` WHERE `key` = ?');
                     $st->bindValue(1, strval($value), PDO::PARAM_STR);
                     $st->execute();
                     $res = $st->fetch(PDO::FETCH_NUM);
                     $st->closeCursor();
                     if (intval($res[0]) == 0) {
-                        $st = $db->prepare('INSERT INTO `system` (`key`, `value`) VALUES (?, ?)');
+                        $st = $db->prepare('INSERT INTO `' . Database::tablePrefix() . 'system` (`key`, `value`) VALUES (?, ?)');
                         $st->bindValue(1, strval($key), PDO::PARAM_STR);
                         $st->bindValue(2, strval($value), PDO::PARAM_STR);
                     } else {
-                        $st = $db->prepare('UPDATE `system` SET `value` = ? WHERE `key` = ?');
+                        $st = $db->prepare('UPDATE `' . Database::tablePrefix() . 'system` SET `value` = ? WHERE `key` = ?');
                         $st->bindValue(1, strval($value), PDO::PARAM_STR);
                         $st->bindValue(2, strval($key), PDO::PARAM_STR);
                     }

@@ -53,7 +53,7 @@ class DatabaseUpgrader
         $db = Database::connection();
         $db->beginTransaction();
         try {
-            $db->query('INSERT INTO `system` (`key`, `value`) VALUES ("version", "0.1")');
+            $db->query('INSERT INTO `' . Database::tablePrefix() . 'system` (`key`, `value`) VALUES ("version", "0.1")');
             $db->commit();
         } catch (Exception $e) {
             $db->rollBack();
@@ -67,17 +67,17 @@ class DatabaseUpgrader
         $db = Database::connection();
         $db->beginTransaction();
         try {
-            if (!self::columnExists($db, 'domains', 'active')) {
-                $db->query('ALTER TABLE `domains` ADD COLUMN `active` boolean NOT NULL AFTER `fqdn`');
+            if (!self::columnExists($db, Database::tablePrefix() . 'domains', 'active')) {
+                $db->query('ALTER TABLE `' . Database::tablePrefix() . 'domains` ADD COLUMN `active` boolean NOT NULL AFTER `fqdn`');
             }
-            if (!self::columnExists($db, 'domains', 'created_time')) {
-                $db->query('ALTER TABLE `domains` ADD COLUMN `created_time` datetime NOT NULL');
+            if (!self::columnExists($db, Database::tablePrefix() . 'domains', 'created_time')) {
+                $db->query('ALTER TABLE `' . Database::tablePrefix() . 'domains` ADD COLUMN `created_time` datetime NOT NULL');
             }
-            if (!self::columnExists($db, 'domains', 'updated_time')) {
-                $db->query('ALTER TABLE `domains` ADD COLUMN `updated_time` datetime NOT NULL');
+            if (!self::columnExists($db, Database::tablePrefix() . 'domains', 'updated_time')) {
+                $db->query('ALTER TABLE `' . Database::tablePrefix() . 'domains` ADD COLUMN `updated_time` datetime NOT NULL');
             }
-            $db->query('UPDATE `domains` SET `active` = TRUE, `created_time` = NOW(), `updated_time` = NOW()');
-            $db->query('UPDATE `system` SET `value` = "1.0" WHERE `key` = "version"');
+            $db->query('UPDATE `' . Database::tablePrefix() . 'domains` SET `active` = TRUE, `created_time` = NOW(), `updated_time` = NOW()');
+            $db->query('UPDATE `' . Database::tablePrefix() . 'system` SET `value` = "1.0" WHERE `key` = "version"');
             $db->commit();
         } catch (Exception $e) {
             $db->rollBack();

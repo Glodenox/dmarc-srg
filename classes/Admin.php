@@ -55,12 +55,12 @@ class Admin
         try {
             $db = Database::connection();
             $db_tables = [];
-            $st = $db->query('SHOW TABLE STATUS FROM `' . str_replace('`', '', Database::name()) . '`');
+            $st = $db->query('SHOW TABLE STATUS FROM `' . str_replace('`', '', Database::name()) . '` WHERE NAME LIKE \'' . Database::tablePrefix() . '%\'');
             while ($row = $st->fetch(PDO::FETCH_ASSOC)) {
                 $tnm = $row['Name'];
                 $st2 = $db->query('SELECT COUNT(*) FROM `' . $tnm . '`');
                 $rows = $st2->fetch(PDO::FETCH_NUM)[0];
-                $db_tables[$tnm] = [
+                $db_tables[substr($tnm, strlen(Database::tablePrefix()))] = [
                     'engine'       => $row['Engine'],
                     'rows'         => intval($rows),
                     'data_length'  => intval($row['Data_length']),
@@ -153,14 +153,14 @@ class Admin
     {
         try {
             $db = Database::connection();
-            $st = $db->query('SHOW TABLES');
+            $st = $db->query('SHOW TABLES LIKE \'' . Database::tablePrefix() . '%\'');
             if ($st->fetch()) {
-                throw new Exception('The database is not empty', -4);
+                throw new Exception('Database tables already exist with the given prefix', -4);
             }
             foreach (array_keys(Database::$schema) as $table) {
-                $this->createDbTable($table, Database::$schema[$table]);
+                $this->createDbTable(Database::tablePrefix() . $table, Database::$schema[$table]);
             }
-            $st = $db->prepare('INSERT INTO `system` (`key`, `value`) VALUES ("version", ?)');
+            $st = $db->prepare('INSERT INTO `' . Database::tablePrefix() . 'system` (`key`, `value`) VALUES ("version", ?)');
             $st->bindValue(1, Database::REQUIRED_VERSION, PDO::PARAM_STR);
             $st->execute();
             $st->closeCursor();
@@ -183,7 +183,7 @@ class Admin
         try {
             $db = Database::connection();
             $db->query('SET foreign_key_checks = 0');
-            $st = $db->query('SHOW TABLES');
+            $st = $db->query('SHOW TABLES LIKE \'' . Database::tablePrefix() . '%\'');
             while ($table = $st->fetchColumn(0)) {
                 $db->query('DROP TABLE `' . $table . '`');
             }
